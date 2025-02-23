@@ -1,0 +1,7 @@
+with-expecter: false
+dir: "mocks/"
+packages:
+  github.com/tomcyr/kryptonim-example/domain:
+    config:
+    interfaces:
+      RatesRepository:
