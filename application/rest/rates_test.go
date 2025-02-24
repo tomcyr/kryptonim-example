@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/tomcyr/kryptonim-example/application/dto"
 	"github.com/tomcyr/kryptonim-example/domain"
 	"github.com/tomcyr/kryptonim-example/mocks"
 	"go.uber.org/zap"
@@ -25,13 +26,13 @@ func TestRates_GetRatesCurrencies_Success(t *testing.T) {
 	gbp, _ := domain.NewCurrency("GBP")
 	currencies := []*domain.Currency{eur, gbp}
 
-	baseRates := make(map[string]float64, 2)
-	baseRates["EUR"] = 1
-	baseRates["GBP"] = 2
+	baseRates := make(map[domain.Currency]float64, 2)
+	baseRates[*eur] = 0.954685
+	baseRates[*gbp] = 1.0
 
 	baseCurrency, _ := domain.NewCurrency("USD")
 
-	repositoryMock.On("GetRates", mock.Anything, *baseCurrency, currencies).Return(
+	repositoryMock.On("GetRates", mock.Anything, baseCurrency, currencies).Return(
 		baseRates,
 		nil,
 	)
@@ -45,7 +46,7 @@ func TestRates_GetRatesCurrencies_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 	repositoryMock.AssertExpectations(t)
-	var response []domain.Rates
+	var response []dto.RatesResponse
 	err := json.Unmarshal(responseRecorder.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.Len(t, response, 2)
@@ -98,13 +99,9 @@ func TestRates_GetRatesCurrencies_ApiFailed_Error(t *testing.T) {
 	gbp, _ := domain.NewCurrency("GBP")
 	currencies := []*domain.Currency{eur, gbp}
 
-	baseRates := make(map[string]float64, 2)
-	baseRates["EUR"] = 1
-	baseRates["GBP"] = 2
-
 	baseCurrency, _ := domain.NewCurrency("USD")
 
-	repositoryMock.On("GetRates", mock.Anything, *baseCurrency, currencies).Return(
+	repositoryMock.On("GetRates", mock.Anything, baseCurrency, currencies).Return(
 		nil,
 		errors.New("failure"),
 	)

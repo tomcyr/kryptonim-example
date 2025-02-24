@@ -1,6 +1,6 @@
 Example project written in go using gin-gonic
 
-Endpoint:
+Endpoint rates:
 ```
 GET /rates?currencies=EUR,GBP
 ```
@@ -14,6 +14,16 @@ Example response:
 ```
 
 returns rates for all currency pairs: EUR-GBP, GBP-EUR fetched from openexchangesrates.org API.
+
+Endpoint exchange:
+```
+GET /exchange?from=WBTC&to=USDT&amount=1.0
+```
+
+Example response:
+```json
+{"from": "WBTC", "to": "USDT", "amount": 57094.314314}
+```
 
 How to run:
 ```bash

@@ -18,7 +18,7 @@ func NewLoggingRatesRepository(wrapped domain.RatesRepository, logger *zap.Logge
 	}
 }
 
-func (l *loggingRatesRepository) GetRates(ctx context.Context, baseCurrency domain.Currency, currencies []*domain.Currency) (map[string]float64, error) {
+func (l *loggingRatesRepository) GetRates(ctx context.Context, baseCurrency *domain.Currency, currencies []*domain.Currency) (map[domain.Currency]float64, error) {
 	l.logger.Debug("get rates from repository", zap.String("baseCurrency", baseCurrency.String()), zap.Reflect("currencies", currencies))
 	res, err := l.wrapped.GetRates(ctx, baseCurrency, currencies)
 	if err != nil {
@@ -26,7 +26,12 @@ func (l *loggingRatesRepository) GetRates(ctx context.Context, baseCurrency doma
 
 		return res, err
 	}
-	l.logger.Debug("get rates from repository successfully", zap.String("baseCurrency", baseCurrency.String()), zap.Reflect("currencies", currencies), zap.Reflect("result", res))
+
+	resLog := make(map[string]float64, len(res))
+	for currency, f := range res {
+		resLog[currency.String()] = f
+	}
+	l.logger.Debug("get rates from repository successfully", zap.String("baseCurrency", baseCurrency.String()), zap.Reflect("currencies", currencies), zap.Any("result", resLog))
 
 	return res, err
 }

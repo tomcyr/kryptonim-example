@@ -4,11 +4,8 @@ import (
 	"context"
 )
 
-const (
-	baseCurrency             Currency = "USD"
-	defaultFiatDecimalPoints int      = 6
-)
+var baseCurrency, _ = NewCurrency("USD")
 
 type RatesRepository interface {
-	GetRates(ctx context.Context, baseCurrency Currency, currencies []*Currency) (map[string]float64, error)
+	GetRates(ctx context.Context, baseCurrency *Currency, currencies []*Currency) (map[Currency]float64, error)
 }

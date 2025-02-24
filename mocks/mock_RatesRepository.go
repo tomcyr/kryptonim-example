@@ -15,27 +15,27 @@ type MockRatesRepository struct {
 }
 
 // GetRates provides a mock function with given fields: ctx, baseCurrency, currencies
-func (_m *MockRatesRepository) GetRates(ctx context.Context, baseCurrency domain.Currency, currencies []*domain.Currency) (map[string]float64, error) {
+func (_m *MockRatesRepository) GetRates(ctx context.Context, baseCurrency *domain.Currency, currencies []*domain.Currency) (map[domain.Currency]float64, error) {
 	ret := _m.Called(ctx, baseCurrency, currencies)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRates")
 	}
 
-	var r0 map[string]float64
+	var r0 map[domain.Currency]float64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Currency, []*domain.Currency) (map[string]float64, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Currency, []*domain.Currency) (map[domain.Currency]float64, error)); ok {
 		return rf(ctx, baseCurrency, currencies)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Currency, []*domain.Currency) map[string]float64); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Currency, []*domain.Currency) map[domain.Currency]float64); ok {
 		r0 = rf(ctx, baseCurrency, currencies)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]float64)
+			r0 = ret.Get(0).(map[domain.Currency]float64)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, domain.Currency, []*domain.Currency) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.Currency, []*domain.Currency) error); ok {
 		r1 = rf(ctx, baseCurrency, currencies)
 	} else {
 		r1 = ret.Error(1)
