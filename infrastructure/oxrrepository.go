@@ -44,7 +44,7 @@ func (e apiError) Error() string {
 	return fmt.Sprintf("%v: %v", e.Message, e.Description)
 }
 
-func (r *openExchangeRatesRepository) GetRates(ctx context.Context, baseCurrency domain.Currency, currencies []*domain.Currency) (map[string]float64, error) {
+func (r *openExchangeRatesRepository) GetRates(ctx context.Context, baseCurrency *domain.Currency, currencies []*domain.Currency) (map[domain.Currency]float64, error) {
 	ctx, cancel := context.WithTimeout(ctx, apiTimeout)
 	defer cancel()
 
@@ -70,7 +70,13 @@ func (r *openExchangeRatesRepository) GetRates(ctx context.Context, baseCurrency
 		return nil, fmt.Errorf("failed to unmarshal rates response: %w", err)
 	}
 
-	return ratesRes.Rates, nil
+	result := make(map[domain.Currency]float64, len(ratesRes.Rates))
+	for s, v := range ratesRes.Rates {
+		cur, _ := domain.NewCurrency(s)
+		result[*cur] = v
+	}
+
+	return result, nil
 }
 
 func (r *openExchangeRatesRepository) apiCall(endpoint string, args map[string]string) ([]byte, error) {

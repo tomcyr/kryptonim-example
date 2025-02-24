@@ -32,11 +32,18 @@ func main() {
 		infrastructure.NewOpenExchangeRatesRepository(cfg.OpenExchangeRates.AppID, cfg.OpenExchangeRates.BaseURL),
 		logger,
 	)
-	service := domain.NewRatesService(oxrRepo)
+	staticRepo := infrastructure.NewLoggingRatesRepository(
+		infrastructure.NewStaticRatesRepository(),
+		logger,
+	)
+	rateService := domain.NewRatesService(oxrRepo)
+	exchangeService := domain.NewExchangeService(staticRepo)
 
 	router := gin.Default()
-	ratesHandler := rest.NewRatesHandler(service, logger)
+	ratesHandler := rest.NewRatesHandler(rateService, logger)
+	exchangeHandler := rest.NewExchangeHandler(exchangeService)
 	router.GET("/rates", ratesHandler.GetRatesCurrencies)
+	router.GET("/exchange", exchangeHandler.GetExchange)
 
 	err = router.Run(fmt.Sprintf(":%d", cfg.REST.Port))
 	if err != nil {

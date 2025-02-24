@@ -2,6 +2,7 @@ package rest
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/tomcyr/kryptonim-example/application/dto"
 	"github.com/tomcyr/kryptonim-example/domain"
 	"go.uber.org/zap"
 	"net/http"
@@ -24,7 +25,7 @@ func (h RatesHandler) GetRatesCurrencies(ctx *gin.Context) {
 	symbols := strings.Split(ctx.Query("currencies"), ",")
 	if len(symbols) < 2 {
 		h.logger.Debug("not enough currencies")
-		ctx.JSON(http.StatusBadRequest, gin.H{})
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 	currencies := make([]*domain.Currency, len(symbols))
@@ -32,7 +33,7 @@ func (h RatesHandler) GetRatesCurrencies(ctx *gin.Context) {
 		cur, err := domain.NewCurrency(symbol)
 		if err != nil {
 			h.logger.Debug("invalid currencies", zap.Error(err))
-			ctx.JSON(http.StatusBadRequest, gin.H{})
+			ctx.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 		currencies[k] = cur
@@ -40,9 +41,14 @@ func (h RatesHandler) GetRatesCurrencies(ctx *gin.Context) {
 	rates, err := h.svc.GetRates(ctx.Request.Context(), currencies)
 	if err != nil {
 		h.logger.Error("an error occurred", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{})
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, rates)
+	resp := make([]*dto.RatesResponse, len(rates))
+	for k, rate := range rates {
+		resp[k] = dto.NewRatesResponse(rate)
+	}
+
+	ctx.JSON(http.StatusOK, resp)
 }

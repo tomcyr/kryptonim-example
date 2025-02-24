@@ -6,19 +6,29 @@ import (
 	"strings"
 )
 
-type Currency string
+const (
+	defaultFiatDecimalPoints int = 6
+)
 
-func NewCurrency(currency string) (*Currency, error) {
-	if !isValidCurrency(currency) {
-		return nil, fmt.Errorf("invalid argument for currency: %s", currency)
+type Currency struct {
+	Symbol        string
+	DecimalPoints int
+}
+
+func NewCurrency(symbol string) (*Currency, error) {
+	if !isValidSymbol(symbol) {
+		return nil, fmt.Errorf("invalid argument for currency: %s", symbol)
 	}
-	cur := Currency(strings.ToUpper(currency))
+	cur := Currency{
+		Symbol:        strings.ToUpper(symbol),
+		DecimalPoints: defaultFiatDecimalPoints,
+	}
 
 	return &cur, nil
 }
 
-func isValidCurrency(currency string) bool {
-	if len(currency) < 3 || len(currency) > 5 {
+func isValidSymbol(symbol string) bool {
+	if len(symbol) < 3 || len(symbol) > 5 {
 		return false
 	}
 
@@ -26,16 +36,20 @@ func isValidCurrency(currency string) bool {
 }
 
 func (c *Currency) String() string {
-	return string(*c)
+	return c.Symbol
 }
 
-type Rates struct {
-	From *Currency       `json:"from"`
-	To   *Currency       `json:"to"`
-	Rate decimal.Decimal `json:"rate"`
+func (c *Currency) SetDecimalPoints(decimalPoints int) {
+	c.DecimalPoints = decimalPoints
 }
 
-func NewRates(from, to string, rate decimal.Decimal, scale int) (*Rates, error) {
+type Rate struct {
+	From *Currency
+	To   *Currency
+	Rate decimal.Decimal
+}
+
+func NewRate(from, to string, rate decimal.Decimal) (*Rate, error) {
 	f, err := NewCurrency(from)
 	if err != nil {
 		return nil, err
@@ -45,9 +59,44 @@ func NewRates(from, to string, rate decimal.Decimal, scale int) (*Rates, error) 
 		return nil, err
 	}
 
-	return &Rates{
+	return &Rate{
 		From: f,
 		To:   t,
-		Rate: rate.Round(scale),
+		Rate: rate,
 	}, nil
+}
+
+type Exchange struct {
+	From   *Currency
+	To     *Currency
+	Amount decimal.Decimal
+}
+
+func NewExchange(from, to string, amount float64) (*Exchange, error) {
+	fromCurr, err := NewCurrency(from)
+	if err != nil {
+		return nil, err
+	}
+	toCurr, err := NewCurrency(to)
+	if err != nil {
+		return nil, err
+	}
+	amountDec, err := decimal.NewFromFloat64(amount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Exchange{
+		From:   fromCurr,
+		To:     toCurr,
+		Amount: amountDec,
+	}, nil
+}
+
+func NewExchangeFromCurrencies(from, to *Currency, amount decimal.Decimal) *Exchange {
+	return &Exchange{
+		From:   from,
+		To:     to,
+		Amount: amount,
+	}
 }
